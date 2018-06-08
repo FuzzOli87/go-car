@@ -15,15 +15,18 @@
 #   branch = "dev"
 #   source = "github.com/myfork/project2"
 #
-# [[override]]
-#   name = "github.com/x/y"
-#   version = "2.4.0"
-#
+[[override]]
+  name = "periph.io/x/periph"
+  version = "2.3.0"
 # [prune]
 #   non-go = false
 #   go-tests = true
 #   unused-packages = true
 
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/pkg/term"
 
 [[constraint]]
   name = "gobot.io/x/gobot"
@@ -32,7 +35,3 @@
 [prune]
   go-tests = true
   unused-packages = true
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/pkg/term"

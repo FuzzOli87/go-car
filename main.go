@@ -2,38 +2,35 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/pkg/term"
+	"gobot.io/x/gobot/drivers/gpio"
+	"gobot.io/x/gobot/platforms/raspi"
 )
 
-// var (
-// 	r = raspi.NewAdaptor()
-// )
-//
+var (
+	r       = raspi.NewAdaptor()
+	enableA = gpio.NewDirectPinDriver(r, "12")
+	enableB = gpio.NewDirectPinDriver(r, "13")
+	aOne    = gpio.NewDirectPinDriver(r, "31")
+	aTwo    = gpio.NewDirectPinDriver(r, "33")
+	bOne    = gpio.NewDirectPinDriver(r, "18")
+	bTwo    = gpio.NewDirectPinDriver(r, "16")
+)
+
 func main() {
+
 	terminal, _ := term.Open("/dev/tty")
 	term.RawMode(terminal)
 	bytes := make([]byte, 3)
 
-	gracefulStop := make(chan os.Signal)
-	signal.Notify(gracefulStop, syscall.SIGTERM)
-	signal.Notify(gracefulStop, syscall.SIGINT)
-	signal.Notify(gracefulStop, syscall.SIGKILL)
-
-	go func() {
-		sig := <-gracefulStop
-		fmt.Printf("caught sig: %+v", sig)
-
-		// enableA.PwmWrite(0)
-		// enableB.PwmWrite(0)
-
-		terminal.Restore()
-		terminal.Close()
-		os.Exit(0)
-	}()
+	// Everything disabled to start off
+	enableA.DigitalWrite(0)
+	enableB.DigitalWrite(0)
+	aOne.DigitalWrite(0)
+	aTwo.DigitalWrite(0)
+	bOne.DigitalWrite(0)
+	bTwo.DigitalWrite(0)
 
 	for {
 		numRead, err := terminal.Read(bytes)
@@ -44,77 +41,61 @@ func main() {
 		if numRead == 3 && bytes[0] == 27 && bytes[1] == 91 {
 			// Three-character control sequence, beginning with "ESC-[".
 
-			// Since there are no ASCII codes for arrow keys, we use
-			// Javascript key codes.
+			// Since there are no ASCII codes for arrow keys, we use Javascript key codes.
 			switch bytes[2] {
+			// up forward
 			case 65:
-				// up
-				fmt.Println("UP")
+				aOne.DigitalWrite(0)
+				aTwo.DigitalWrite(1)
+				bOne.DigitalWrite(0)
+				bTwo.DigitalWrite(1)
+			// down reverse
 			case 66:
-				// down
 				fmt.Println("DOWN")
+				aOne.DigitalWrite(1)
+				aTwo.DigitalWrite(0)
+				bOne.DigitalWrite(1)
+				bTwo.DigitalWrite(0)
+			// RIGHT
 			case 67:
-				// RIGHT
 				fmt.Println("RIGHT")
+				aOne.DigitalWrite(0)
+				aTwo.DigitalWrite(1)
+				bOne.DigitalWrite(1)
+				bTwo.DigitalWrite(0)
+			// LEFT
 			case 68:
-				// LEFT
-				fmt.Println("RIGHT")
+				fmt.Println("LEFT")
+				aOne.DigitalWrite(1)
+				aTwo.DigitalWrite(0)
+				bOne.DigitalWrite(0)
+				bTwo.DigitalWrite(1)
+			}
+		} else if numRead == 1 {
+			switch int(bytes[0]) {
+			// q is for quit!
+			case 113:
+				enableA.DigitalWrite(0)
+				enableB.DigitalWrite(0)
+
+				aOne.DigitalWrite(0)
+				aTwo.DigitalWrite(0)
+				bOne.DigitalWrite(0)
+				bTwo.DigitalWrite(0)
+
+				terminal.Restore()
+				terminal.Close()
+				// s Start Engine
+			case 115:
+				enableA.DigitalWrite(1)
+				enableB.DigitalWrite(1)
+				// b break
+			case 98:
+				aOne.DigitalWrite(0)
+				aTwo.DigitalWrite(0)
+				bOne.DigitalWrite(0)
+				bTwo.DigitalWrite(0)
 			}
 		}
 	}
-
-	// enableA := gpio.NewDirectPinDriver(r, "12")
-	// enableB := gpio.NewDirectPinDriver(r, "13")
-	// a1 := gpio.NewDirectPinDriver(r, "31")
-	// a2 := gpio.NewDirectPinDriver(r, "33")
-	// b1 := gpio.NewDirectPinDriver(r, "18")
-	// b2 := gpio.NewDirectPinDriver(r, "16")
-	//
-	// gracefulStop := make(chan os.Signal)
-	// signal.Notify(gracefulStop, syscall.SIGTERM)
-	// signal.Notify(gracefulStop, syscall.SIGINT)
-	// signal.Notify(gracefulStop, syscall.SIGKILL)
-	//
-	// go func() {
-	// 	sig := <-gracefulStop
-	// 	fmt.Printf("caught sig: %+v", sig)
-	//
-	// 	enableA.PwmWrite(0)
-	// 	enableB.PwmWrite(0)
-	//
-	// 	os.Exit(0)
-	// }()
-	//
-	// work := func() {
-	// 	fmt.Println("Initiating enas")
-	//
-	// 	// enableA.DigitalWrite(1)
-	// 	// enableB.DigitalWrite(1)
-	//
-	// 	// forward
-	// 	a1.DigitalWrite(1)
-	// 	a2.DigitalWrite(0)
-	//
-	// 	b1.DigitalWrite(1)
-	// 	b2.DigitalWrite(0)
-	//
-	// 	enableA.PwmWrite(10)
-	// 	enableA.PwmWrite(250)
-	//
-	// 	enableB.PwmWrite(10)
-	// 	enableB.PwmWrite(250)
-	//
-	// 	fmt.Println("Sleeping")
-	// 	time.Sleep(3000 * time.Millisecond)
-	//
-	// 	enableA.DigitalWrite(0)
-	// 	enableB.DigitalWrite(0)
-	// }
-	//
-	// robot := gobot.NewRobot("GoCar",
-	// 	[]gobot.Connection{r},
-	// 	[]gobot.Device{enableA, enableB, a1, a1, b1, b2},
-	// 	work)
-	//
-	// robot.Start()
 }
