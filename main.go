@@ -1,25 +1,22 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/pkg/term"
 	"gobot.io/x/gobot/drivers/gpio"
-	"gobot.io/x/gobot/platforms/raspi"
+	"gobot.io/x/gobot/platforms/particle"
 )
 
 var (
-	r       = raspi.NewAdaptor()
-	enableA = gpio.NewDirectPinDriver(r, "12")
-	enableB = gpio.NewDirectPinDriver(r, "13")
-	aOne    = gpio.NewDirectPinDriver(r, "31")
-	aTwo    = gpio.NewDirectPinDriver(r, "33")
-	bOne    = gpio.NewDirectPinDriver(r, "18")
-	bTwo    = gpio.NewDirectPinDriver(r, "16")
+	core    = particle.NewAdaptor("390044000f47363333343437", "4f04cecd40b14fa5b77b3c472d9a09a3cfb89c62")
+	enableA = gpio.NewDirectPinDriver(core, "D0")
+	enableB = gpio.NewDirectPinDriver(core, "A0")
+	aOne    = gpio.NewDirectPinDriver(core, "D1")
+	aTwo    = gpio.NewDirectPinDriver(core, "D2")
+	bOne    = gpio.NewDirectPinDriver(core, "A1")
+	bTwo    = gpio.NewDirectPinDriver(core, "A2")
 )
 
 func main() {
-
 	terminal, _ := term.Open("/dev/tty")
 	term.RawMode(terminal)
 	bytes := make([]byte, 3)
@@ -47,25 +44,27 @@ func main() {
 			case 65:
 				aOne.DigitalWrite(0)
 				aTwo.DigitalWrite(1)
-				bOne.DigitalWrite(0)
-				bTwo.DigitalWrite(1)
-			// down reverse
-			case 66:
-				fmt.Println("DOWN")
-				aOne.DigitalWrite(1)
-				aTwo.DigitalWrite(0)
 				bOne.DigitalWrite(1)
 				bTwo.DigitalWrite(0)
+			// down reverse
+			case 66:
+				aOne.DigitalWrite(0)
+				aTwo.DigitalWrite(0)
+				bOne.DigitalWrite(0)
+				bTwo.DigitalWrite(0)
+
+				aOne.DigitalWrite(1)
+				aTwo.DigitalWrite(0)
+				bOne.DigitalWrite(0)
+				bTwo.DigitalWrite(1)
 			// RIGHT
 			case 67:
-				fmt.Println("RIGHT")
 				aOne.DigitalWrite(0)
 				aTwo.DigitalWrite(1)
 				bOne.DigitalWrite(1)
 				bTwo.DigitalWrite(0)
 			// LEFT
 			case 68:
-				fmt.Println("LEFT")
 				aOne.DigitalWrite(1)
 				aTwo.DigitalWrite(0)
 				bOne.DigitalWrite(0)
@@ -76,7 +75,7 @@ func main() {
 			// q is for quit!
 			case 113:
 				enableA.DigitalWrite(0)
-				enableB.DigitalWrite(0)
+				// enableB.DigitalWrite(0)
 
 				aOne.DigitalWrite(0)
 				aTwo.DigitalWrite(0)
